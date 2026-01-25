@@ -1,0 +1,34 @@
+{
+  "placeholderImages": [
+    {
+      "id": "hero-image",
+      "description": "An illustration of a friendly AI robot companion for studying.",
+      "imageUrl": "https://images.unsplash.com/photo-1691456960191-8d2a45d070b4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxyb2JvdCUyMHN0dWR5fGVufDB8fHx8MTc3MDA2NTM5NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "robot study"
+    },
+    {
+      "id": "feature-personalization",
+      "description": "Icon representing personalized roadmaps.",
+      "imageUrl": "https://images.unsplash.com/photo-1678931547963-ab9017fc35c6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxnbG93aW5nJTIwYnJhaW58ZW58MHx8fHwxNzY5MjY0NTEwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "glowing brain"
+    },
+    {
+      "id": "feature-voice",
+      "description": "Icon representing voice-first learning.",
+      "imageUrl": "https://images.unsplash.com/photo-1655138629937-0f21671e1d1f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxzb3VuZCUyMHdhdmVzfGVufDB8fHx8MTc2OTE4MzM5NXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "sound waves"
+    },
+    {
+      "id": "feature-rag",
+      "description": "Icon representing document uploads and RAG.",
+      "imageUrl": "https://images.unsplash.com/photo-1694015824784-28d0c8d6fdca?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxzdGFjayUyMGRvY3VtZW50c3xlbnwwfHx8fDE3NjkyNjQ1MTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "stack documents"
+    },
+    {
+      "id": "feature-quiz",
+      "description": "Icon representing adaptive quizzes.",
+      "imageUrl": "https://images.unsplash.com/photo-1636911661481-422a05677c0c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx0YXJnZXQlMjBnb2FsfGVufDB8fHx8MTc2OTI2NDUxMHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "target goal"
+    }
+  ]
+}
