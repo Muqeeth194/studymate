@@ -183,3 +183,12 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+
+# Local Data & Uploads (Prevent committing study materials)
+*.docx
+*.doc
+*.pdf
+*.txt
+# clerk configuration (can include secrets)
+/.clerk/

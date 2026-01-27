@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   Sidebar,
@@ -8,11 +8,11 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
-} from '@/components/ui/sidebar';
-import { BookOpenCheck, LogOut, Settings } from 'lucide-react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { menuItems } from '@/lib/menu-items';
+} from "@/components/ui/sidebar";
+import { BookOpenCheck, LogOut, Settings } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { menuItems } from "@/lib/menu-items";
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -39,7 +39,7 @@ export function AppSidebar() {
           <SidebarMenu key={group.title}>
             {group.items.map((item) => (
               <SidebarMenuItem key={item.href}>
-                <Link href={item.href} passHref legacyBehavior>
+                <Link href={item.href}>
                   <SidebarMenuButton
                     isActive={pathname === item.href}
                     tooltip={item.label}
@@ -62,11 +62,11 @@ export function AppSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <Link href="/" passHref legacyBehavior>
-                <SidebarMenuButton tooltip="Logout">
+            <Link href="/">
+              <SidebarMenuButton tooltip="Logout">
                 <LogOut className="h-5 w-5" />
                 <span>Logout</span>
-                </SidebarMenuButton>
+              </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
         </SidebarMenu>
