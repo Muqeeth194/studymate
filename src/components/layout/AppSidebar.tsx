@@ -62,12 +62,13 @@ export function AppSidebar() {
 
   return (
     <Sidebar side="left" collapsible="icon" className="border-r">
+      {/* LOGO */}
       <SidebarHeader>
         <Link
           href="/dashboard"
           className="flex items-center gap-2 text-xl font-bold font-headline text-sidebar-foreground px-2 py-2"
         >
-          <BookOpenCheck className="h-6 w-6 text-primary" />
+          <BookOpenCheck className="h-6 w-6 text-sidebar-primary" />
           <span className="group-data-[state=collapsed]:hidden">
             StudyMate AI
           </span>
@@ -75,7 +76,7 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        {/* 1. Dynamic Course List (Moved to Top) */}
+        {/* LEARNING PATHS */}
         <SidebarGroup>
           <SidebarGroupLabel>My Learning Paths</SidebarGroupLabel>
           <SidebarGroupContent>
@@ -92,6 +93,7 @@ export function AppSidebar() {
                         <SidebarMenuButton
                           isActive={activeCourseId === course._id}
                           tooltip={course.topic}
+                          className="data-[active=true]:bg-sidebar-primary data-[active=true]:text-white hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                         >
                           <Book className="h-4 w-4" />
                           <span>{course.topic}</span>
@@ -119,7 +121,7 @@ export function AppSidebar() {
 
         {/* 2. Standard Menu Items (Visible ONLY when a course is active) */}
         {activeCourseId && (
-          <div className="animate-in fade-in slide-in-from-left-2 duration-300">
+          <div className="animate-in fade-in slide-in-from-left-2 duration-300 p-2">
             {menuItems.map((group) => (
               <SidebarMenu key={group.title}>
                 <SidebarGroupLabel>{group.title}</SidebarGroupLabel>
@@ -138,6 +140,7 @@ export function AppSidebar() {
                         <SidebarMenuButton
                           isActive={pathname === dynamicHref}
                           tooltip={item.label}
+                          className="data-[active=true]:bg-sidebar-primary data-[active=true]:text-white hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                         >
                           <item.icon className="h-5 w-5" />
                           <span>{item.label}</span>

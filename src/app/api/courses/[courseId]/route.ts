@@ -6,11 +6,13 @@ import User from "@/models/User"; // Don't forget this import
 
 export async function GET(
   req: Request,
-  { params }: { params: { courseId: string } },
+  { params }: { params: Promise<{ courseId: string }> },
 ) {
   try {
     const { userId } = await auth();
     if (!userId) return new NextResponse("Unauthorized", { status: 401 });
+
+    const { courseId } = await params;
 
     await connectDB();
 
@@ -23,7 +25,7 @@ export async function GET(
 
     // 2. Find the course AND confirm ownership in one query
     const course = await LearningPath.findOne({
-      _id: params.courseId,
+      _id: courseId,
       userId: user._id, // This prevents users from accessing others' courses
     });
 

@@ -30,7 +30,7 @@ export default function SignInPage() {
 
   React.useEffect(() => {
     if (isSignedIn) {
-      router.push("/onboarding");
+      router.push("/dashboard");
     }
   }, [isSignedIn]);
 
@@ -55,7 +55,7 @@ export default function SignInPage() {
           duration: 3000,
         });
 
-        router.push("/onboarding");
+        router.push("/dashboard");
       } else {
         // Handle other statuses (e.g. MFA / 2FA) if needed
         console.log(JSON.stringify(result, null, 2));

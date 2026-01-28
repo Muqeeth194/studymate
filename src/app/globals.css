@@ -34,14 +34,17 @@
 
     --radius: 0.75rem;
 
-    --sidebar-background: 262 52% 45%;
-    --sidebar-foreground: 265 53% 95%;
-    --sidebar-primary: 261 46% 66%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 262 52% 55%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 262 52% 40%;
-    --sidebar-ring: 261 46% 70%;
+    --sidebar-background: 240 5% 96%; /* Off-white background (Zinc-50/100ish) */
+    --sidebar-foreground: 240 10% 3.9%; /* Dark text for readability */
+
+    --sidebar-primary: 221.2 83.2% 53.3%; /*  (Selected Item Background) */
+    --sidebar-primary-foreground: 0 0% 100%; /* White text on selected item */
+
+    --sidebar-accent: 240 4.8% 90%; /* Slightly darker gray for Hover state */
+    --sidebar-accent-foreground: 240 5.9% 10%; /* Dark text on hover */
+
+    --sidebar-border: 240 5.9% 90%; /* Light gray border */
+    --sidebar-ring: 221.2 83.2% 53.3%;
   }
 
   .dark {
@@ -73,14 +76,14 @@
     --input: 240 4% 20%;
     --ring: 221 83% 53%;
 
-    --sidebar-background: 262 25% 12%;
-    --sidebar-foreground: 265 53% 95%;
-    --sidebar-primary: 261 46% 66%;
+    --sidebar-background: 240 10% 3.9%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 221.2 83.2% 53.3%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 262 25% 20%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 262 25% 20%;
-    --sidebar-ring: 261 46% 70%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 221.2 83.2% 53.3%;
   }
 }
 

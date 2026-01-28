@@ -1,4 +1,12 @@
-import { LayoutDashboard, Book, Target, BarChart, Trophy, type LucideIcon } from 'lucide-react';
+import {
+  LayoutDashboard,
+  Book,
+  Target,
+  BarChart,
+  Trophy,
+  type LucideIcon,
+  BookOpen,
+} from "lucide-react";
 
 type MenuItem = {
   href: string;
@@ -13,31 +21,36 @@ type MenuGroup = {
 
 export const menuItems: MenuGroup[] = [
   {
-    title: "Main",
+    title: "Menu",
     items: [
       {
-        href: '/dashboard',
-        label: 'Dashboard',
+        href: "/",
+        label: "Dashboard",
         icon: LayoutDashboard,
       },
       {
-        href: '/roadmap',
-        label: 'Roadmap',
+        href: "/studysession",
+        label: "Study Session",
+        icon: BookOpen,
+      },
+      {
+        href: "/roadmap",
+        label: "Roadmap",
         icon: Book,
       },
       {
-        href: '/quizzes',
-        label: 'Quizzes',
+        href: "/quizzes",
+        label: "Quizzes",
         icon: Target,
       },
       {
-        href: '/analytics',
-        label: 'Analytics',
+        href: "/analytics",
+        label: "Analytics",
         icon: BarChart,
       },
       {
-        href: '/achievements',
-        label: 'Achievements',
+        href: "/achievements",
+        label: "Achievements",
         icon: Trophy,
       },
     ],
