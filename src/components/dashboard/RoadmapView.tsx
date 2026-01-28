@@ -5,7 +5,15 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Circle, BookOpen, Code, Layers } from "lucide-react";
+import {
+  CheckCircle2,
+  Circle,
+  BookOpen,
+  Code,
+  Layers,
+  Loader2,
+  PlayCircle, // Import PlayCircle for the "In Progress" icon
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter, useParams } from "next/navigation";
 import { useState } from "react";
@@ -17,6 +25,7 @@ interface Topic {
   type: "theory" | "practical" | "project";
   estimatedMinutes: number;
   isCompleted: boolean;
+  markdownContent?: string | null; // Added to check if content exists
 }
 
 interface Week {
@@ -30,11 +39,10 @@ interface RoadmapViewProps {
 }
 
 export function RoadmapView({ syllabus }: RoadmapViewProps) {
-  const router = useRouter(); // 2. Initialize router
-  const params = useParams(); // 3. Get courseId from URL
+  const router = useRouter();
+  const params = useParams();
   const { toast } = useToast();
 
-  // Track which specific topic is currently loading
   const [loadingTopicId, setLoadingTopicId] = useState<string | null>(null);
 
   const getIcon = (type: string) => {
@@ -48,27 +56,19 @@ export function RoadmapView({ syllabus }: RoadmapViewProps) {
     }
   };
 
-  // Handle Click Function
   const handleTopicClick = async (topicId: string) => {
-    if (loadingTopicId) return; // Prevent multiple clicks
+    if (loadingTopicId) return;
 
     setLoadingTopicId(topicId);
 
     try {
-      // 1. Call the Generate API
-      // Note: We don't need the return data here, just the success confirmation
-      // The next page will fetch the content again (or we could pass it via context/state)
-      // But usually, standard practice is to let the next page fetch the "cached" data
       const res = await fetch(
         `/api/courses/${params.courseId}/topics/${topicId}/generate`,
-        {
-          method: "POST",
-        },
+        { method: "POST" },
       );
 
       if (!res.ok) throw new Error("Failed to generate lesson");
 
-      // 2. Navigate on Success
       router.push(`/dashboard/course/${params.courseId}/topic/${topicId}`);
     } catch (error) {
       console.error(error);
@@ -77,7 +77,7 @@ export function RoadmapView({ syllabus }: RoadmapViewProps) {
         description: "Could not generate the lesson. Please try again.",
         variant: "destructive",
       });
-      setLoadingTopicId(null); // Stop loading only on error (on success, we navigate away)
+      setLoadingTopicId(null);
     }
   };
 
@@ -100,42 +100,80 @@ export function RoadmapView({ syllabus }: RoadmapViewProps) {
               </div>
             </AccordionTrigger>
             <AccordionContent className="pt-2 pb-4 space-y-2">
-              {week.topics.map((topic) => (
-                <div
-                  key={topic.id}
-                  onClick={() => handleTopicClick(topic.id)}
-                  className={cn(
-                    "flex items-center justify-between p-3 rounded-md border transition-colors hover:bg-accent/50 cursor-pointer group",
-                    topic.isCompleted
-                      ? "bg-muted/50 border-transparent"
-                      : "bg-background",
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    {topic.isCompleted ? (
-                      <CheckCircle2 className="h-5 w-5 text-green-500" />
-                    ) : (
-                      <Circle className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+              {week.topics.map((topic) => {
+                const isThisLoading = loadingTopicId === topic.id;
+                // Check if topic is started but not finished
+                const isInProgress =
+                  !topic.isCompleted && !!topic.markdownContent;
+
+                return (
+                  <div
+                    key={topic.id}
+                    onClick={() => handleTopicClick(topic.id)}
+                    className={cn(
+                      "flex items-center justify-between p-3 rounded-md border transition-all cursor-pointer group",
+                      // Visual States:
+                      topic.isCompleted
+                        ? "bg-muted/50 border-transparent" // Completed
+                        : isInProgress
+                          ? "bg-blue-50 border-blue-200 shadow-sm" // In Progress (Blue tint)
+                          : "bg-background hover:bg-accent/50", // Not Started
+
+                      loadingTopicId ? "opacity-60 pointer-events-none" : "",
                     )}
-                    <div>
-                      <div className="font-medium text-sm flex items-center gap-2">
-                        {topic.title}
-                        <Badge
-                          variant="secondary"
-                          className="text-[10px] h-5 px-1.5 font-normal"
-                        >
-                          {topic.estimatedMinutes}m
-                        </Badge>
+                  >
+                    <div className="flex items-center gap-3">
+                      {/* STATUS ICON LOGIC */}
+                      {isThisLoading ? (
+                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                      ) : topic.isCompleted ? (
+                        <CheckCircle2 className="h-5 w-5 text-green-500" />
+                      ) : isInProgress ? (
+                        // In Progress Icon
+                        <PlayCircle className="h-5 w-5 text-blue-600 fill-blue-100" />
+                      ) : (
+                        // Not Started Icon
+                        <Circle className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                      )}
+
+                      <div>
+                        <div className="font-medium text-sm flex items-center gap-2">
+                          {topic.title}
+
+                          {/* Loading Text */}
+                          {isThisLoading && (
+                            <span className="text-xs text-muted-foreground animate-pulse">
+                              (Generating...)
+                            </span>
+                          )}
+
+                          {/* Badge Logic */}
+                          {isInProgress && !isThisLoading && (
+                            <Badge
+                              variant="outline"
+                              className="text-[10px] h-5 px-1.5 bg-blue-100 text-blue-700 border-blue-200"
+                            >
+                              In Progress
+                            </Badge>
+                          )}
+
+                          <Badge
+                            variant="secondary"
+                            className="text-[10px] h-5 px-1.5 font-normal"
+                          >
+                            {topic.estimatedMinutes}m
+                          </Badge>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    {getIcon(topic.type)}
-                    <span className="capitalize">{topic.type}</span>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      {getIcon(topic.type)}
+                      <span className="capitalize">{topic.type}</span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </AccordionContent>
           </AccordionItem>
         ))}

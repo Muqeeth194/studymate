@@ -10,12 +10,20 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 
+interface LessonResponse {
+  content: string;
+  title: string;
+  type: string;
+  estimatedMinutes: number;
+  cached: boolean;
+}
+
 export default function StudySessionPage() {
   const params = useParams();
   // Assuming the route is /dashboard/course/[courseId]/topic/[topicId]
   const { courseId, topicId } = params as { courseId: string; topicId: string };
 
-  const [content, setContent] = useState<string | null>(null);
+  const [responseData, setResponseData] = useState<LessonResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
 
@@ -37,7 +45,7 @@ export default function StudySessionPage() {
         if (!res.ok) throw new Error("Failed to load lesson");
 
         const data = await res.json();
-        setContent(data.content);
+        setResponseData(data);
       } catch (error) {
         console.error(error);
       } finally {
@@ -48,6 +56,8 @@ export default function StudySessionPage() {
     fetchContent();
   }, [courseId, topicId]);
 
+  console.log("response data", responseData);
+
   return (
     // h-screen and overflow-hidden prevent the whole window from scrolling
     <div className="h-[calc(100vh-2rem)] bg-gray-50 flex flex-col overflow-hidden">
@@ -56,13 +66,11 @@ export default function StudySessionPage() {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="space-y-1">
             <h1 className="text-xl font-bold">
-              {loading ? "Loading Lesson..." : "React Deep Dive"}
+              {loading ? "Loading Lesson..." : responseData?.title}
               {/* You could also fetch the topic title in the API response */}
             </h1>
             <p className="text-indigo-100 text-sm flex items-center gap-2">
-              <span>Topic: {topicId ? topicId.slice(0, 8) : "..."}</span>
-              <span>•</span>
-              <span>AI Generated Module</span>
+              <span>Type: {responseData?.type}</span>
             </p>
           </div>
 
@@ -70,7 +78,7 @@ export default function StudySessionPage() {
             <div className="flex items-center gap-4 text-sm font-medium text-indigo-100">
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4" />
-                <span>25m estimated</span>
+                <span>{responseData?.estimatedMinutes} estimated</span>
               </div>
             </div>
 
@@ -89,8 +97,7 @@ export default function StudySessionPage() {
 
       {/* 2. MAIN CONTENT GRID (Fills remaining height) */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-hidden">
-        {/* LEFT COLUMN: Learning Content (Scrollable) */}
-        {/* 'overflow-y-auto' allows this specific column to scroll while chat stays put */}
+        {/* Learning Content */}
         <div className="lg:col-span-2 h-full overflow-y-auto pr-2 custom-scrollbar">
           <Card className="border-none shadow-md min-h-full">
             <CardContent className="p-8">
@@ -101,10 +108,10 @@ export default function StudySessionPage() {
                     Generating your personalized lesson...
                   </p>
                 </div>
-              ) : content ? (
+              ) : responseData?.content ? (
                 // Prose class automatically styles Markdown (requires @tailwindcss/typography)
                 <div className="prose prose-blue max-w-none dark:prose-invert">
-                  <ReactMarkdown>{content}</ReactMarkdown>
+                  <ReactMarkdown>{responseData?.content}</ReactMarkdown>
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center h-64 text-red-500">
@@ -114,7 +121,7 @@ export default function StudySessionPage() {
               )}
 
               {/* Action Buttons at bottom of content */}
-              {!loading && content && (
+              {!loading && responseData?.content && (
                 <div className="pt-8 mt-8 border-t flex flex-col sm:flex-row gap-4">
                   <Button
                     size="lg"

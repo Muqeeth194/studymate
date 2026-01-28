@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
   Loader2,
@@ -10,16 +10,21 @@ import {
   PlayCircle,
   Clock,
   BookOpen,
-  FileQuestion,
+  Code,
+  Layers,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { TopicCard } from "@/components/dashboard/TopicCard";
+import { useToast } from "@/hooks/use-toast"; // Ensure you have this hook
 
 export default function RoadmapPage() {
   const params = useParams();
+  const router = useRouter();
+  const { toast } = useToast();
+
   const [course, setCourse] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingTopicId, setLoadingTopicId] = useState<string | null>(null);
 
   // Fetch Course Data
   useEffect(() => {
@@ -37,6 +42,44 @@ export default function RoadmapPage() {
     };
     fetchCourse();
   }, [params.courseId]);
+
+  // Handle Topic Click (Generate & Navigate)
+  const handleTopicClick = async (topicId: string) => {
+    if (loadingTopicId) return;
+    setLoadingTopicId(topicId);
+
+    try {
+      // Trigger Generation (or check cache)
+      const res = await fetch(
+        `/api/courses/${params.courseId}/topics/${topicId}/generate`,
+        { method: "POST" },
+      );
+
+      if (!res.ok) throw new Error("Failed to generate lesson");
+
+      // Navigate
+      router.push(`/dashboard/course/${params.courseId}/topic/${topicId}`);
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Error",
+        description: "Could not load the lesson. Please try again.",
+        variant: "destructive",
+      });
+      setLoadingTopicId(null);
+    }
+  };
+
+  const getIcon = (type: string) => {
+    switch (type) {
+      case "practical":
+        return <Code className="h-4 w-4" />;
+      case "project":
+        return <Layers className="h-4 w-4" />;
+      default:
+        return <BookOpen className="h-4 w-4" />;
+    }
+  };
 
   if (loading) {
     return (
@@ -59,7 +102,9 @@ export default function RoadmapPage() {
           </p>
         </div>
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
-          <span>Total Weeks:{course.roadmap.totalWeeks}</span>
+          <Badge variant="outline" className="px-3 py-1">
+            {course.roadmap.totalWeeks} Weeks
+          </Badge>
         </div>
       </div>
 
@@ -69,8 +114,8 @@ export default function RoadmapPage() {
 
         {/* Weeks Rendering */}
         <div className="space-y-12">
-          {course.roadmap.syllabus.map((week: any, index: number) => {
-            // Determine Week Status based on its topics
+          {course.roadmap.syllabus.map((week: any) => {
+            // Determine Week Status
             const completedTopics = week.topics.filter(
               (t: any) => t.isCompleted,
             ).length;
@@ -78,11 +123,11 @@ export default function RoadmapPage() {
             const isWeekCompleted = completedTopics === totalTopics;
             const isWeekStarted = completedTopics > 0;
 
-            // Dynamic Colors for the Week Indicator
-            let indicatorColor = "bg-muted text-muted-foreground"; // Default Gray
+            // Week Indicator Color
+            let indicatorColor = "bg-muted text-muted-foreground";
             if (isWeekCompleted)
-              indicatorColor = "bg-primary text-primary-foreground"; // Completed
-            else if (isWeekStarted) indicatorColor = "bg-purple-600 text-white"; // In Progress
+              indicatorColor = "bg-primary text-primary-foreground";
+            else if (isWeekStarted) indicatorColor = "bg-purple-600 text-white";
 
             return (
               <div key={week.weekNumber} className="relative flex gap-8">
@@ -107,9 +152,89 @@ export default function RoadmapPage() {
 
                   {/* Topics Grid */}
                   <div className="grid md:grid-cols-2 gap-4">
-                    {week.topics.map((topic: any) => (
-                      <TopicCard key={topic.id} topic={topic} />
-                    ))}
+                    {week.topics.map((topic: any) => {
+                      const isThisLoading = loadingTopicId === topic.id;
+                      const isInProgress =
+                        !topic.isCompleted && !!topic.markdownContent;
+
+                      return (
+                        <Card
+                          key={topic.id}
+                          onClick={() => handleTopicClick(topic.id)}
+                          className={cn(
+                            "cursor-pointer transition-all hover:shadow-md border-l-4",
+                            // Conditional Styling
+                            topic.isCompleted
+                              ? "border-l-green-500 bg-muted/20"
+                              : isInProgress
+                                ? "border-l-blue-500 bg-blue-50/50 border-blue-200"
+                                : "border-l-transparent hover:border-l-primary/50",
+
+                            loadingTopicId
+                              ? "opacity-70 pointer-events-none"
+                              : "",
+                          )}
+                        >
+                          <CardContent className="p-4 flex gap-4 items-start">
+                            {/* Icon Box */}
+                            <div
+                              className={cn(
+                                "mt-1 p-2 rounded-full flex items-center justify-center",
+                                topic.isCompleted
+                                  ? "bg-green-100 text-green-600"
+                                  : isInProgress
+                                    ? "bg-blue-100 text-blue-600"
+                                    : "bg-muted text-muted-foreground",
+                              )}
+                            >
+                              {isThisLoading ? (
+                                <Loader2 className="h-5 w-5 animate-spin" />
+                              ) : topic.isCompleted ? (
+                                <CheckCircle2 className="h-5 w-5" />
+                              ) : isInProgress ? (
+                                <PlayCircle className="h-5 w-5" />
+                              ) : (
+                                <Circle className="h-5 w-5" />
+                              )}
+                            </div>
+
+                            {/* Text Content */}
+                            <div className="flex-1 space-y-1">
+                              <div className="flex items-center justify-between">
+                                <span
+                                  className={cn(
+                                    "font-semibold",
+                                    topic.isCompleted &&
+                                      "text-muted-foreground line-through decoration-green-500/50",
+                                  )}
+                                >
+                                  {topic.title}
+                                </span>
+                                {isInProgress && !isThisLoading && (
+                                  <Badge
+                                    variant="outline"
+                                    className="text-[10px] bg-blue-100 text-blue-700 border-blue-200"
+                                  >
+                                    Resume
+                                  </Badge>
+                                )}
+                              </div>
+
+                              <div className="flex items-center gap-3 text-xs text-muted-foreground mt-2">
+                                <div className="flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />
+                                  <span>{topic.estimatedMinutes}m</span>
+                                </div>
+                                <div className="flex items-center gap-1 capitalize">
+                                  {getIcon(topic.type)}
+                                  <span>{topic.type}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
