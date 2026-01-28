@@ -7,6 +7,9 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, Circle, BookOpen, Code, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useRouter, useParams } from "next/navigation";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 interface Topic {
   id: string;
@@ -27,6 +30,13 @@ interface RoadmapViewProps {
 }
 
 export function RoadmapView({ syllabus }: RoadmapViewProps) {
+  const router = useRouter(); // 2. Initialize router
+  const params = useParams(); // 3. Get courseId from URL
+  const { toast } = useToast();
+
+  // Track which specific topic is currently loading
+  const [loadingTopicId, setLoadingTopicId] = useState<string | null>(null);
+
   const getIcon = (type: string) => {
     switch (type) {
       case "practical":
@@ -35,6 +45,39 @@ export function RoadmapView({ syllabus }: RoadmapViewProps) {
         return <Layers className="h-4 w-4 text-purple-500" />;
       default:
         return <BookOpen className="h-4 w-4 text-orange-500" />;
+    }
+  };
+
+  // Handle Click Function
+  const handleTopicClick = async (topicId: string) => {
+    if (loadingTopicId) return; // Prevent multiple clicks
+
+    setLoadingTopicId(topicId);
+
+    try {
+      // 1. Call the Generate API
+      // Note: We don't need the return data here, just the success confirmation
+      // The next page will fetch the content again (or we could pass it via context/state)
+      // But usually, standard practice is to let the next page fetch the "cached" data
+      const res = await fetch(
+        `/api/courses/${params.courseId}/topics/${topicId}/generate`,
+        {
+          method: "POST",
+        },
+      );
+
+      if (!res.ok) throw new Error("Failed to generate lesson");
+
+      // 2. Navigate on Success
+      router.push(`/dashboard/course/${params.courseId}/topic/${topicId}`);
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Error",
+        description: "Could not generate the lesson. Please try again.",
+        variant: "destructive",
+      });
+      setLoadingTopicId(null); // Stop loading only on error (on success, we navigate away)
     }
   };
 
@@ -60,6 +103,7 @@ export function RoadmapView({ syllabus }: RoadmapViewProps) {
               {week.topics.map((topic) => (
                 <div
                   key={topic.id}
+                  onClick={() => handleTopicClick(topic.id)}
                   className={cn(
                     "flex items-center justify-between p-3 rounded-md border transition-colors hover:bg-accent/50 cursor-pointer group",
                     topic.isCompleted

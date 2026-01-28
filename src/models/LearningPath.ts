@@ -11,6 +11,7 @@ const TopicSchema = new Schema({
   },
   estimatedMinutes: { type: Number, required: true },
   isCompleted: { type: Boolean, default: false },
+  markdownContent: { type: String, default: null },
 });
 
 // Sub-schema for Weeks

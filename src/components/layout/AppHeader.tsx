@@ -47,7 +47,6 @@ export function AppHeader() {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="rounded-full">
               <Avatar className="h-8 w-8">
-                {/* 2. Replaced Image with User Icon */}
                 <AvatarFallback className="bg-primary/10">
                   <User className="h-4 w-4" />
                 </AvatarFallback>
