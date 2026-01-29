@@ -1,17 +1,48 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 
+// Add these interfaces to your existing file
+interface QuizQuestion {
+  question: string;
+  options: string[]; // Array of 4 options
+  correctAnswer: string; // The correct string matches one option
+  explanation: string; // Why it's correct
+}
+
+// Update the Topic Interface
+interface ITopic {
+  id: string;
+  title: string;
+  isCompleted: boolean;
+  markdownContent?: string;
+  // NEW FIELDS
+  quizStatus: "pending" | "generated" | "passed" | "failed";
+  quiz?: QuizQuestion[];
+  quizScore?: number;
+}
+
 // Sub-schema for individual topics
+const QuizQuestionSchema = new Schema({
+  question: { type: String, required: true },
+  options: [{ type: String, required: true }],
+  correctAnswer: { type: String, required: true }, // Stored securely
+  explanation: { type: String },
+});
+
 const TopicSchema = new Schema({
   id: { type: String, required: true },
   title: { type: String, required: true },
-  type: {
-    type: String,
-    enum: ["theory", "practical", "quiz", "project"],
-    required: true,
-  },
-  estimatedMinutes: { type: Number, required: true },
   isCompleted: { type: Boolean, default: false },
-  markdownContent: { type: String, default: null },
+  markdownContent: { type: String },
+  type: { type: String, default: "theory" },
+  estimatedMinutes: { type: Number, default: 15 },
+  // NEW FIELDS
+  quizStatus: {
+    type: String,
+    enum: ["pending", "generated", "passed", "failed"],
+    default: "pending",
+  },
+  quiz: [QuizQuestionSchema],
+  quizScore: { type: Number, default: 0 },
 });
 
 // Sub-schema for Weeks
