@@ -303,7 +303,6 @@ export default function QuizPage() {
 
   return (
     <div className="h-[calc(100vh-4rem)] bg-gray-50 flex flex-col items-center py-6 px-4">
-      {/* Changed max-w-2xl to max-w-xl and space-y-8 to space-y-6 */}
       <div className="w-full max-w-xl space-y-6">
         {/* Header Section */}
         <div className="space-y-2">
@@ -340,7 +339,6 @@ export default function QuizPage() {
                   key={idx}
                   onClick={() => handleOptionSelect(option)}
                   className={cn(
-                    // Reduced padding from p-4 to p-3
                     "p-3 rounded-xl border-2 cursor-pointer transition-all duration-200 flex items-center gap-3 group hover:shadow-sm",
                     isSelected
                       ? "border-blue-600 bg-blue-50/50"
@@ -361,7 +359,7 @@ export default function QuizPage() {
                   </div>
                   <span
                     className={cn(
-                      "font-medium text-sm", // Added text-sm optionally for tighter text
+                      "font-medium text-sm",
                       isSelected ? "text-blue-900" : "text-gray-700",
                     )}
                   >

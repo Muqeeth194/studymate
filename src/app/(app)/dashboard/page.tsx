@@ -84,7 +84,7 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6 w-full max-w-3xl">
+      <div className="grid md:grid-cols-1 gap-6 w-full max-w-3xl">
         {/* Create New Card */}
         <Link href="/onboarding" className="block">
           <Card className="hover:border-primary/50 transition-all hover:shadow-md cursor-pointer h-full">

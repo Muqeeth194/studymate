@@ -48,11 +48,6 @@ export const menuItems: MenuGroup[] = [
         label: "Analytics",
         icon: BarChart,
       },
-      {
-        href: "/achievements",
-        label: "Achievements",
-        icon: Trophy,
-      },
     ],
   },
 ];
