@@ -5,9 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import {
   CheckCircle2,
   XCircle,
-  ArrowRight,
   Loader2,
-  AlertCircle,
   ChevronRight,
   RotateCcw,
   LayoutDashboard,
@@ -65,14 +63,12 @@ export default function QuizPage() {
       try {
         const res = await fetch(
           `/api/courses/${courseId}/topics/${topicId}/quiz/generate`,
-          { method: "POST" }, // Using POST to trigger gen or fetch existing
+          { method: "POST" },
         );
 
         if (!res.ok) throw new Error("Failed to load quiz");
 
         const data = await res.json();
-
-        console.log("quiz data response:", data);
 
         if (data.quiz && Array.isArray(data.quiz)) {
           setQuestions(data.quiz);
@@ -91,7 +87,7 @@ export default function QuizPage() {
       }
     };
     fetchQuiz();
-  }, [courseId, topicId]);
+  }, [courseId, topicId, toast]);
 
   // 2. Handle Option Selection
   const handleOptionSelect = (option: string) => {
@@ -139,10 +135,10 @@ export default function QuizPage() {
           className: "bg-green-600 text-white border-none",
         });
       } else {
+        // --- UPDATED USER FEEDBACK FOR < 70% ---
         toast({
-          title: "Keep Trying!",
-          description:
-            "You didn't reach the passing score. Review the material and try again.",
+          title: "Quiz Failed",
+          description: `You scored ${resultData.score}%. You need at least 70% to complete this topic and unlock the next one.`,
           variant: "destructive",
         });
       }
@@ -172,7 +168,7 @@ export default function QuizPage() {
   // --- Results View ---
   if (quizResult) {
     return (
-      <div className="h-[calc(100vh-2rem)] bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="h-[calc(100vh-2rem)] bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 overflow-y-auto">
         <div className="max-w-3xl mx-auto space-y-6">
           {/* Result Header Card */}
           <Card

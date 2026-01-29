@@ -107,11 +107,13 @@ export default function AnalyticsPage() {
           subValue="Across all courses"
           icon={<Trophy className="h-5 w-5 text-yellow-500" />}
         />
+        {/* UPDATED: Added progress prop here */}
         <StatCard
           title="Topics Completed"
           value={`${stats.completedTopics} / ${stats.totalTopics}`}
           subValue={`${stats.overallProgress}% Completion Rate`}
           icon={<Target className="h-5 w-5 text-green-500" />}
+          progress={stats.overallProgress}
         />
         <StatCard
           title="Active Courses"
@@ -220,17 +222,19 @@ export default function AnalyticsPage() {
   );
 }
 
-// Simple Stat Card Component
+// UPDATED: Stat Card Component with optional progress bar
 function StatCard({
   title,
   value,
   subValue,
   icon,
+  progress,
 }: {
   title: string;
   value: string;
   subValue: string;
   icon: React.ReactNode;
+  progress?: number;
 }) {
   return (
     <Card className="shadow-sm">
@@ -243,6 +247,13 @@ function StatCard({
         </div>
         <div className="text-2xl font-bold">{value}</div>
         <p className="text-xs text-muted-foreground mt-1">{subValue}</p>
+
+        {/* Render Progress if available */}
+        {progress !== undefined && (
+          <div className="mt-3">
+            <Progress value={progress} className="h-2" />
+          </div>
+        )}
       </CardContent>
     </Card>
   );

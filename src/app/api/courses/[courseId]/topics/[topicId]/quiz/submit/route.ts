@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import connectDB from "@/db/connectDB";
 import LearningPath from "@/models/LearningPath";
 import User from "@/models/User";
+import { updateCourseProgress } from "@/lib/progress-helper";
 
 export async function POST(
   req: NextRequest,
@@ -10,7 +11,6 @@ export async function POST(
 ) {
   try {
     const { userId } = await auth();
-    // userAnswers is an array of selected strings matching the options
     const { userAnswers } = await req.json();
     const { courseId, topicId } = await params;
 
@@ -30,11 +30,11 @@ export async function POST(
       }
     }
 
-    if (!targetTopic || !targetTopic.quiz || targetTopic.quiz.length === 0) {
-      return new NextResponse("Quiz not generated yet", { status: 404 });
+    if (!targetTopic || !targetTopic.quiz) {
+      return new NextResponse("Quiz not found", { status: 404 });
     }
 
-    // 1. Grading Logic
+    // 1. Calculate Score
     let correctCount = 0;
     const totalQuestions = targetTopic.quiz.length;
 
@@ -53,28 +53,35 @@ export async function POST(
     });
 
     const percentage = Math.round((correctCount / totalQuestions) * 100);
-    const PASS_THRESHOLD = 70; // 70% required to pass
+    const PASS_THRESHOLD = 70;
 
-    // 2. Update Database
+    // 2. Update Status based on 70% Threshold
     targetTopic.quizScore = percentage;
 
     if (percentage >= PASS_THRESHOLD) {
       targetTopic.quizStatus = "passed";
-      targetTopic.isCompleted = true; // <--- UNLOCKS NEXT TOPIC
+      targetTopic.isCompleted = true; // Unlocks next topic
     } else {
       targetTopic.quizStatus = "failed";
-      targetTopic.isCompleted = false;
+      targetTopic.isCompleted = false; // Keeps next topic locked
     }
 
+    // 3. Save
     course.markModified("roadmap.syllabus");
     await course.save();
+
+    // 4. Update Global Progress
+    // We update progress regardless of pass/fail to record study minutes,
+    // but the percentage only moves if they passed (handled inside helper)
+    await updateCourseProgress(course._id.toString());
 
     return NextResponse.json({
       passed: percentage >= PASS_THRESHOLD,
       score: percentage,
-      results, // Frontend can now show which were wrong + explanations
+      results,
     });
-  } catch (error: any) {
+  } catch (error) {
+    console.error(error);
     return new NextResponse("Internal Error", { status: 500 });
   }
 }
