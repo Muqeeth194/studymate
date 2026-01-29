@@ -12,7 +12,8 @@ import {
   Code,
   Layers,
   Loader2,
-  PlayCircle, // Import PlayCircle for the "In Progress" icon
+  PlayCircle,
+  Lock, // Import Lock icon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter, useParams } from "next/navigation";
@@ -25,7 +26,7 @@ interface Topic {
   type: "theory" | "practical" | "project";
   estimatedMinutes: number;
   isCompleted: boolean;
-  markdownContent?: string | null; // Added to check if content exists
+  markdownContent?: string | null;
 }
 
 interface Week {
@@ -67,8 +68,22 @@ export function RoadmapView({ syllabus }: RoadmapViewProps) {
         { method: "POST" },
       );
 
+      // 1. Handle Locked State (403)
+      if (res.status === 403) {
+        const data = await res.json();
+        toast({
+          title: "Topic Locked 🔒",
+          description:
+            data.message || "Please complete the previous topic first.",
+          variant: "destructive", // or "default" if you prefer less aggressive color
+        });
+        setLoadingTopicId(null);
+        return; // Stop execution
+      }
+
       if (!res.ok) throw new Error("Failed to generate lesson");
 
+      // 2. Success - Navigate
       router.push(`/dashboard/course/${params.courseId}/topic/${topicId}`);
     } catch (error) {
       console.error(error);
@@ -100,11 +115,14 @@ export function RoadmapView({ syllabus }: RoadmapViewProps) {
               </div>
             </AccordionTrigger>
             <AccordionContent className="pt-2 pb-4 space-y-2">
-              {week.topics.map((topic) => {
+              {week.topics.map((topic, index) => {
                 const isThisLoading = loadingTopicId === topic.id;
-                // Check if topic is started but not finished
                 const isInProgress =
                   !topic.isCompleted && !!topic.markdownContent;
+
+                // Optional: Visually indicate locked status based on previous topic
+                // Note: Finding previous topic in nested map is tricky visually,
+                // so we rely on the click handler toast for now.
 
                 return (
                   <div
@@ -112,42 +130,33 @@ export function RoadmapView({ syllabus }: RoadmapViewProps) {
                     onClick={() => handleTopicClick(topic.id)}
                     className={cn(
                       "flex items-center justify-between p-3 rounded-md border transition-all cursor-pointer group",
-                      // Visual States:
                       topic.isCompleted
-                        ? "bg-muted/50 border-transparent" // Completed
+                        ? "bg-muted/50 border-transparent"
                         : isInProgress
-                          ? "bg-blue-50 border-blue-200 shadow-sm" // In Progress (Blue tint)
-                          : "bg-background hover:bg-accent/50", // Not Started
-
+                          ? "bg-blue-50 border-blue-200 shadow-sm"
+                          : "bg-background hover:bg-accent/50",
                       loadingTopicId ? "opacity-60 pointer-events-none" : "",
                     )}
                   >
                     <div className="flex items-center gap-3">
-                      {/* STATUS ICON LOGIC */}
                       {isThisLoading ? (
                         <Loader2 className="h-5 w-5 animate-spin text-primary" />
                       ) : topic.isCompleted ? (
                         <CheckCircle2 className="h-5 w-5 text-green-500" />
                       ) : isInProgress ? (
-                        // In Progress Icon
                         <PlayCircle className="h-5 w-5 text-blue-600 fill-blue-100" />
                       ) : (
-                        // Not Started Icon
                         <Circle className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
                       )}
 
                       <div>
                         <div className="font-medium text-sm flex items-center gap-2">
                           {topic.title}
-
-                          {/* Loading Text */}
                           {isThisLoading && (
                             <span className="text-xs text-muted-foreground animate-pulse">
                               (Generating...)
                             </span>
                           )}
-
-                          {/* Badge Logic */}
                           {isInProgress && !isThisLoading && (
                             <Badge
                               variant="outline"
@@ -156,7 +165,6 @@ export function RoadmapView({ syllabus }: RoadmapViewProps) {
                               In Progress
                             </Badge>
                           )}
-
                           <Badge
                             variant="secondary"
                             className="text-[10px] h-5 px-1.5 font-normal"

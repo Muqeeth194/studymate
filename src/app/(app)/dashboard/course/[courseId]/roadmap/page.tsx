@@ -12,10 +12,11 @@ import {
   BookOpen,
   Code,
   Layers,
+  Lock, // Added Lock icon for potentially locked states
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast"; // Ensure you have this hook
+import { useToast } from "@/hooks/use-toast";
 
 export default function RoadmapPage() {
   const params = useParams();
@@ -54,6 +55,20 @@ export default function RoadmapPage() {
         `/api/courses/${params.courseId}/topics/${topicId}/generate`,
         { method: "POST" },
       );
+
+      // --- GATEKEEPER CHECK START ---
+      if (res.status === 403) {
+        const data = await res.json();
+        toast({
+          title: "Topic Locked 🔒",
+          description:
+            data.message || "Please complete the previous topic first.",
+          variant: "destructive",
+        });
+        setLoadingTopicId(null);
+        return; // Stop here, do not navigate
+      }
+      // --- GATEKEEPER CHECK END ---
 
       if (!res.ok) throw new Error("Failed to generate lesson");
 
