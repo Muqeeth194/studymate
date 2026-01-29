@@ -73,7 +73,9 @@ export default function RoadmapPage() {
       if (!res.ok) throw new Error("Failed to generate lesson");
 
       // Navigate
-      router.push(`/dashboard/course/${params.courseId}/topic/${topicId}`);
+      router.push(
+        `/dashboard/course/${params.courseId}/topic/${topicId}/studysession`,
+      );
     } catch (error) {
       console.error(error);
       toast({

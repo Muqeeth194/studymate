@@ -29,7 +29,7 @@ export const menuItems: MenuGroup[] = [
         icon: LayoutDashboard,
       },
       {
-        href: "/studysession",
+        href: "",
         label: "Study Session",
         icon: BookOpen,
       },

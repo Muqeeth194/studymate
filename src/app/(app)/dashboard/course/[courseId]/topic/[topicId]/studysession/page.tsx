@@ -142,28 +142,11 @@ export default function StudySessionPage() {
   };
 
   // 4. Handle Quiz Generation
-  const handleGenerateQuiz = async () => {
-    setIsGeneratingQuiz(true);
-    try {
-      const res = await fetch(
-        `/api/courses/${courseId}/topics/${topicId}/quiz/generate`,
-        { method: "POST" },
-      );
+  const handleGenerateQuiz = () => {
+    setIsGeneratingQuiz(true); // Show spinner briefly while router pushes
 
-      if (!res.ok) throw new Error("Failed to generate quiz");
-
-      // Navigate to the quiz page
-      router.push(`/dashboard/course/${courseId}/topic/${topicId}/quiz`);
-    } catch (error) {
-      console.error(error);
-      toast({
-        title: "Error",
-        description: "Could not generate the quiz. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsGeneratingQuiz(false);
-    }
+    // Just navigate. The Quiz Page will trigger the generation API on mount.
+    router.push(`/dashboard/course/${courseId}/topic/${topicId}/quiz`);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {

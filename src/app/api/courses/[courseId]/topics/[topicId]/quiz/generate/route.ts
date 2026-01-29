@@ -34,6 +34,8 @@ export async function POST(
     const { userId } = await auth();
     if (!userId) return new NextResponse("Unauthorized", { status: 401 });
 
+    // const body = await req.json();
+    // const { userId } = body;
     const { courseId, topicId } = await params;
 
     await connectDB();
@@ -68,6 +70,14 @@ export async function POST(
     if (targetTopic.quizStatus === "passed") {
       return NextResponse.json({
         message: "Quiz already passed",
+        quiz: targetTopic.quiz,
+      });
+    }
+
+    // Prevent re-generating if generated
+    if (targetTopic.quizStatus === "generated") {
+      return NextResponse.json({
+        message: "Quiz is Already Generated",
         quiz: targetTopic.quiz,
       });
     }
@@ -114,14 +124,38 @@ export async function POST(
 
     const generatedQuiz = await model.invoke(prompt);
 
-    // 4. Save to Database
-    targetTopic.quiz = generatedQuiz.questions;
-    targetTopic.quizStatus = "generated";
+    // ---------------------------------------------------------
+    // CRITICAL FIX: Re-fetch the document to get the latest version
+    // ---------------------------------------------------------
+    const freshCourse = await LearningPath.findOne({ _id: courseId });
 
-    course.markModified("roadmap.syllabus");
-    await course.save();
+    if (!freshCourse) {
+      return new NextResponse("Course no longer exists", { status: 404 });
+    }
 
-    // Return the quiz WITHOUT correct answers to the frontend
+    // 2. Find the topic again in the FRESH document
+    let freshTopic = null;
+    for (const week of freshCourse.roadmap.syllabus) {
+      const t = week.topics.find((t: any) => t.id === topicId);
+      if (t) {
+        freshTopic = t;
+        break;
+      }
+    }
+
+    if (!freshTopic) {
+      return new NextResponse("Topic not found during save", { status: 404 });
+    }
+
+    // 3. Update the FRESH topic
+    freshTopic.quiz = generatedQuiz.questions;
+    freshTopic.quizStatus = "generated";
+
+    // 4. Save the FRESH document
+    freshCourse.markModified("roadmap.syllabus");
+    await freshCourse.save();
+
+    // 5. Return Response
     const clientSideQuiz = generatedQuiz.questions.map((q: any) => ({
       question: q.question,
       options: q.options,

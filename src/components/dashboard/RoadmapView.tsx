@@ -84,7 +84,9 @@ export function RoadmapView({ syllabus }: RoadmapViewProps) {
       if (!res.ok) throw new Error("Failed to generate lesson");
 
       // 2. Success - Navigate
-      router.push(`/dashboard/course/${params.courseId}/topic/${topicId}`);
+      router.push(
+        `/dashboard/course/${params.courseId}/topic/${topicId}/studysession`,
+      );
     } catch (error) {
       console.error(error);
       toast({

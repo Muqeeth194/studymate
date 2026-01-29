@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import {
   Sidebar,
   SidebarContent,
@@ -22,8 +22,7 @@ import {
   User,
   ChevronsUpDown,
   LogOut,
-  Settings,
-  Sparkles,
+  Play,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -31,7 +30,6 @@ import { menuItems } from "@/lib/menu-items";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -39,6 +37,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useClerk, useUser } from "@clerk/nextjs";
+import { continueLearning } from "@/actions/study-session";
+import { continueQuiz } from "@/actions/quiz-session"; // 1. Import new action
 
 interface SimpleCourse {
   _id: string;
@@ -51,15 +51,13 @@ export function AppSidebar() {
   const { user } = useUser();
   const clerk = useClerk();
 
+  const [isPending, startTransition] = useTransition();
   const [courses, setCourses] = useState<SimpleCourse[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Helper: Extract current course ID from URL if present
-  // URL structure: /dashboard/course/[id]/...
   const courseIdMatch = pathname.match(/\/dashboard\/course\/([^\/]+)/);
   const activeCourseId = courseIdMatch ? courseIdMatch[1] : null;
 
-  // Fetch courses on mount
   useEffect(() => {
     const fetchCourses = async () => {
       try {
@@ -77,9 +75,24 @@ export function AppSidebar() {
     fetchCourses();
   }, []);
 
+  // Handler for Resume Learning
+  const handleResumeClick = () => {
+    if (!activeCourseId) return;
+    startTransition(async () => {
+      await continueLearning(activeCourseId);
+    });
+  };
+
+  // 2. Handler for Quiz Click
+  const handleQuizClick = () => {
+    if (!activeCourseId) return;
+    startTransition(async () => {
+      await continueQuiz(activeCourseId);
+    });
+  };
+
   return (
     <Sidebar side="left" collapsible="icon" className="border-r">
-      {/* LOGO */}
       <SidebarHeader>
         <Link
           href="/dashboard"
@@ -93,7 +106,6 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        {/* LEARNING PATHS */}
         <SidebarGroup>
           <SidebarGroupLabel>My Learning Paths</SidebarGroupLabel>
           <SidebarGroupContent>
@@ -133,19 +145,75 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Separator only shows if we have tools to show */}
         {activeCourseId && <SidebarSeparator />}
 
-        {/* 2. Standard Menu Items (Visible ONLY when a course is active) */}
         {activeCourseId && (
           <div className="animate-in fade-in slide-in-from-left-2 duration-300 p-2">
+            {/* Resume Learning Button */}
+            <SidebarMenu className="mb-2">
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={handleResumeClick}
+                  disabled={isPending}
+                  className="bg-blue-600 text-white hover:bg-blue-700 hover:text-white group"
+                >
+                  {isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Play className="h-4 w-4 fill-current" />
+                  )}
+                  <span className="font-semibold">Resume Learning</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+
             {menuItems.map((group) => (
               <SidebarMenu key={group.title}>
                 <SidebarGroupLabel>{group.title}</SidebarGroupLabel>
                 {group.items.map((item) => {
-                  // Construct dynamic link: /dashboard/course/[id]/[tool-path]
-                  // Assuming item.href is something like "/roadmap" or "/quiz" in your menu-items file
-                  // We remove the leading slash if present to append correctly
+                  // --- CASE 1: Study Session (Resume) ---
+                  if (item.label === "Study Session") {
+                    return (
+                      <SidebarMenuItem key={item.href}>
+                        <SidebarMenuButton
+                          onClick={handleResumeClick}
+                          disabled={isPending}
+                          tooltip={item.label}
+                          className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground cursor-pointer text-blue-600"
+                        >
+                          {isPending ? (
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                          ) : (
+                            <item.icon className="h-5 w-5" />
+                          )}
+                          <span>{item.label}</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  }
+
+                  // --- CASE 2: Quizzes (New Action) ---
+                  if (item.label === "Quizzes") {
+                    return (
+                      <SidebarMenuItem key={item.href}>
+                        <SidebarMenuButton
+                          onClick={handleQuizClick}
+                          disabled={isPending}
+                          tooltip={item.label}
+                          className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground cursor-pointer text-purple-600"
+                        >
+                          {isPending ? (
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                          ) : (
+                            <item.icon className="h-5 w-5" />
+                          )}
+                          <span>{item.label}</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  }
+
+                  // --- CASE 3: Standard Links ---
                   const subPath = item.href.startsWith("/")
                     ? item.href
                     : `/${item.href}`;
@@ -172,7 +240,6 @@ export function AppSidebar() {
         )}
       </SidebarContent>
 
-      {/* FOOTER - USER PROFILE */}
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -229,17 +296,6 @@ export function AppSidebar() {
                     </div>
                   </div>
                 </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {/* <DropdownMenuGroup>
-                  <DropdownMenuItem>
-                    <User className="mr-2 h-4 w-4" />
-                    Account
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Settings className="mr-2 h-4 w-4" />
-                    Settings
-                  </DropdownMenuItem>
-                </DropdownMenuGroup> */}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => clerk.signOut({ redirectUrl: "/" })}
