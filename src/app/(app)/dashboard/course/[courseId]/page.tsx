@@ -1,15 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation"; // Added useRouter
 import { Button } from "@/components/ui/button";
-import { StatCard } from "@/components/dashboard/StatCard"; // Assuming you have this from previous steps
+import { StatCard } from "@/components/dashboard/StatCard";
 import { RoadmapView } from "@/components/dashboard/RoadmapView";
-import { BarChart, Clock, Target, Trophy, Loader2, Share2 } from "lucide-react";
+import { BarChart, Clock, Target, Trophy, Loader2 } from "lucide-react"; // Removed Share2
 import { Progress } from "@/components/ui/progress";
 
 export default function CourseDashboardPage() {
   const params = useParams();
+  const router = useRouter(); // Initialize router
   const [course, setCourse] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -30,6 +31,38 @@ export default function CourseDashboardPage() {
 
     fetchCourse();
   }, [params.courseId]);
+
+  // --- NEW: Helper to find the next active topic ---
+  const handleContinue = () => {
+    if (!course) return;
+
+    let targetTopicId = null;
+
+    // Iterate through weeks and topics to find the first incomplete one
+    for (const week of course.roadmap.syllabus) {
+      for (const topic of week.topics) {
+        if (!topic.isCompleted) {
+          targetTopicId = topic.id;
+          break; // Found it, stop searching topics
+        }
+      }
+      if (targetTopicId) break; // Found it, stop searching weeks
+    }
+
+    // If no incomplete topic found, they finished the course!
+    // Default to the very last topic or show a finished state.
+    if (!targetTopicId) {
+      // Optional: Navigate to a "Course Completed" page instead
+      // For now, just go to the last topic of the last week
+      const lastWeek =
+        course.roadmap.syllabus[course.roadmap.syllabus.length - 1];
+      const lastTopic = lastWeek.topics[lastWeek.topics.length - 1];
+      targetTopicId = lastTopic.id;
+    }
+
+    // Navigate
+    router.push(`/dashboard/course/${params.courseId}/topic/${targetTopicId}`);
+  };
 
   if (loading) {
     return (
@@ -63,11 +96,12 @@ export default function CourseDashboardPage() {
           <h2 className="text-3xl font-bold font-headline">{course.topic}</h2>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            <Share2 className="w-4 h-4 mr-2" />
-            Share
-          </Button>
-          <Button size="lg" className="shadow-lg shadow-primary/20">
+          {/* Removed Share Button */}
+          <Button
+            size="lg"
+            className="shadow-lg shadow-primary/20"
+            onClick={handleContinue} // Attached handler here
+          >
             Continue Week {currentWeek}
           </Button>
         </div>
@@ -128,6 +162,7 @@ export default function CourseDashboardPage() {
                 <p className="text-sm italic">"{course.preferences.goals}"</p>
               </div>
             </div>
+            {/* Kept this button but it currently does nothing logic-wise */}
             <Button variant="secondary" className="w-full">
               Update Goals
             </Button>

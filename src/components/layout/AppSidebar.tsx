@@ -73,7 +73,7 @@ export function AppSidebar() {
       }
     };
     fetchCourses();
-  }, []);
+  }, [activeCourseId]);
 
   // Handler for Resume Learning
   const handleResumeClick = () => {

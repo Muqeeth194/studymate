@@ -64,7 +64,7 @@ export default function OnboardingPage() {
       return;
     }
 
-    console.log("form data:", formData);
+    // console.log("form data:", formData);
 
     setIsGenerating(true);
 
