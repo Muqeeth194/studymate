@@ -160,7 +160,9 @@ export default function QuizPage() {
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
         <Loader2 className="h-10 w-10 animate-spin text-blue-600 mb-4" />
         <h2 className="text-xl font-semibold text-gray-700">Loading Quiz...</h2>
-        <p className="text-gray-500">Preparing your questions</p>
+        <p className="text-gray-500">
+          Preparing your questions based on the topic and the discussion we had
+        </p>
       </div>
     );
   }
