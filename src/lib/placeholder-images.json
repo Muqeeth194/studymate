@@ -3,7 +3,7 @@
     {
       "id": "hero-image",
       "description": "An illustration of a friendly AI robot companion for studying.",
-      "imageUrl": "https://images.unsplash.com/photo-1691456960191-8d2a45d070b4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxyb2JvdCUyMHN0dWR5fGVufDB8fHx8MTc3MDA2NTM5NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1634912314602-0d01437e3540?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       "imageHint": "robot study"
     },
     {

@@ -2,6 +2,7 @@ import { Header } from "@/components/landing/Header";
 import { Hero } from "@/components/landing/Hero";
 import { Features } from "@/components/landing/Features";
 import { Footer } from "@/components/landing/Footer";
+import { HowItWorks } from "@/components/landing/HowItWorks";
 
 export default async function Home() {
   return (
@@ -11,6 +12,7 @@ export default async function Home() {
         <main>
           <Hero />
           <Features />
+          <HowItWorks />
         </main>
         <Footer />
       </div>
