@@ -115,7 +115,7 @@ export default function SignUpPage() {
         className="flex items-center gap-2 font-bold text-2xl font-headline mb-4"
       >
         <BookOpenCheck className="h-8 w-8 text-primary" />
-        <span>StudyVerse AI</span>
+        <span>StudyMate AI</span>
       </Link>
 
       <Card className="w-full max-w-sm">
