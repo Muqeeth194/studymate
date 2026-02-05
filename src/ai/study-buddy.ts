@@ -132,7 +132,6 @@ async function assistantNode(state: typeof MessagesAnnotation.State) {
   const { messages } = state;
 
   // Combine the static instructions with the full conversation history.
-  // We do NOT filter out system messages anymore, because the
   // Context Message injected by the API is a SystemMessage.
   const messagesWithSystem = [
     new SystemMessage(SYSTEM_PROMPT), // Instructions (Rules)
