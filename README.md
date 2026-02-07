@@ -2,6 +2,11 @@
 
 **Master Any Topic with Your Personal AI Learning Companion**
 
+[![Live Demo](https://img.shields.io/badge/demo-live-brightgreen)](https://studymate-sigma-six.vercel.app/)
+[![Next.js](https://img.shields.io/badge/Next.js-14+-black)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue)](https://www.typescriptlang.org/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 StudyMate AI is an intelligent learning platform that generates personalized course roadmaps, provides interactive study sessions, and uses a context-aware AI tutor to help users master new skills. It features a **gatekeeper progression system** where learners must pass adaptive quizzes to unlock subsequent lessons.
 
 🔗 **[Try it live](https://studymate-sigma-six.vercel.app/)**
@@ -12,6 +17,9 @@ StudyMate AI is an intelligent learning platform that generates personalized cou
 
 - **🗺️ Personalized Learning Roadmaps**  
   AI-generated week-by-week study plans tailored to your skill level (Beginner/Intermediate/Advanced), time commitment, and learning goals
+
+- **🌐 Real-Time Web Research**  
+  Unlike static AI models, StudyMate fetches **live data** using **You.com APIs**. It searches for 2026 trends, recent news, breakthroughs, and official documentation to ensure your lessons are never outdated
 
 - **🤖 Context-Aware AI Tutor**  
   Built with **LangGraph**, the tutor remembers conversation history, user identity, and your active learning topic. It stays focused on your studies while allowing natural conversation and clarifications
@@ -53,6 +61,7 @@ StudyMate AI is an intelligent learning platform that generates personalized cou
 ### AI & LLM
 
 - **Model:** OpenAI GPT-4o
+- **Web Research:** You.com APIs (Search, News, Content)
 - **Orchestration:** LangChain
 - **State Management:** LangGraph
 - **Memory:** MongoDB Checkpointer (persistent chat history)
@@ -69,6 +78,7 @@ Ensure you have the following installed:
 - **npm** or **yarn**
 - **MongoDB Atlas** account (or local MongoDB)
 - **OpenAI API** key
+- **You.com API** key
 - **Clerk** account
 
 ### Installation
@@ -109,8 +119,9 @@ NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
 NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/dashboard
 NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/dashboard
 
-# AI
+# AI Services
 OPENAI_API_KEY=sk-...
+YOU_API_KEY=...  # Required for Researcher Graph & Agents
 ```
 
 5. **Run the development server**
@@ -126,56 +137,38 @@ npm run dev
 
 ## 🧠 AI Architecture
 
-### 1. The "Gatekeeper" Progression System
+### 1. The "Researcher" Graph (LangGraph + You.com)
 
-We implement a strict progression system to ensure mastery before advancing.
+We utilize a dedicated **Researcher Graph** to generate high-quality lesson content. Instead of hallucinating facts, the AI performs a 3-step research process before writing any content:
+
+**Flow:**
+
+1. **Planner Node** - Analyzes the topic and generates optimized queries for "Trends", "News", and "Official Docs"
+2. **Researcher Node** - Executes three parallel searches:
+   - **Search Tool:** Fetches broad context and current trends
+   - **News Tool:** Fetches the latest breakthroughs (e.g., updates from last week)
+   - **Content Tool:** Identifies official documentation URLs and scrapes full page content for code accuracy
+3. **Writer Node** - Synthesizes the research data into a structured markdown lesson
+
+### 2. The "Gatekeeper" Progression System
+
+We implement a strict progression system to ensure mastery before advancing:
 
 - **Logic:** Topic B cannot be accessed until Topic A is marked as `isCompleted`
-- **Trigger:** Completing a quiz with a score of ≥70% triggers a server-side update to unlock the next node in the MongoDB syllabus
+- **Trigger:** Completing a quiz with a score of ≥70% triggers a server-side update to unlock the next node
 - **Purpose:** Ensures learners master fundamentals before moving to advanced concepts
 
-### 2. LangGraph Memory System
+### 3. Study Buddy Agent (Context-Aware)
 
-Unlike standard stateless chatbots, our AI tutor uses **LangGraph with MongoDB Checkpointing** for intelligent, contextual conversations.
+The chat assistant is powered by **LangGraph** with persistent memory:
 
-- **Persistence:** Every chat message is saved to a `checkpoints` collection in MongoDB, keyed by `thread_id`
-- **Context Injection:** When a user enters a chat, we inject a specialized system message containing:
-  - User's name and skill level
-  - Current course topic
-  - Lesson content and objectives
-- **Guardrails:** The system prompt uses Chain of Thought reasoning to detect and refuse off-topic questions (sports, politics, etc.) to keep users focused on studying
+- **Persistence:** Every chat message is saved to MongoDB keyed by `thread_id`
+- **Live Research:** The agent has access to the You.com Search Tool. If a user asks "What is the latest version of Next.js?", the agent detects the need for external data, searches the web, and answers with up-to-the-minute accuracy
+- **Guardrails:** Refuses off-topic questions (sports, politics) to keep focus on the curriculum
 
-### 3. Dynamic Content Generation
+### 4. Agent-Based Curriculum Design
 
-- **Roadmap Generation:** AI analyzes user preferences (topic, level, time commitment, goals) to create personalized week-by-week learning plans
-- **Quiz Generation:** Questions are dynamically created based on lesson content, ensuring alignment with what was taught
-- **Adaptive Difficulty:** Quiz difficulty adjusts based on user performance and selected proficiency level
-
----
-
-## 📂 Project Structure
-
-```
-studymate-ai/
-├── src/
-│   ├── app/
-│   │   ├── api/              # Backend API routes (Courses, Quizzes, Analytics)
-│   │   ├── (auth)/           # Clerk authentication pages
-│   │   ├── dashboard/        # Protected application routes
-│   │   └── page.tsx          # Landing page
-│   ├── components/
-│   │   ├── dashboard/        # Dashboard components (RoadmapView, StatCard)
-│   │   ├── ui/               # Shadcn UI reusable components
-│   │   └── landing/          # Landing page sections (Hero, Features)
-│   ├── lib/
-│   │   ├── ai/               # LangChain/LangGraph configuration
-│   │   └── utils.ts          # Helper functions
-│   ├── models/               # Mongoose schemas (User, LearningPath, Quiz)
-│   └── db/                   # Database connection logic
-├── public/                   # Static assets
-├── .env.local               # Environment variables (not committed)
-└── package.json
-```
+**Roadmap Generation:** We use You.com's "Advanced" Agent to design the curriculum. This agent is optimized for complex reasoning and planning, ensuring that the generated week-by-week plan is logical, comprehensive, and tailored to the user's specific project scope (e.g., "Capstone" vs "Mini-projects").
 
 ---
 
@@ -192,15 +185,16 @@ studymate-ai/
    - Learning style (Visual/Reading/Hands-on/Mixed)
    - Learning goals
    - Optional: Upload study materials
-3. **Roadmap Generation** → AI generates personalized week-by-week study plan
-4. **Study & Learn** → Access lessons with AI tutor support
+3. **Roadmap Generation** → AI generates personalized week-by-week study plan using You.com Agent
+4. **Study & Learn** → Access lessons with AI tutor support (powered by Researcher Graph)
 5. **Quiz & Progress** → Pass quizzes (≥70%) to unlock next lessons
 6. **Track Performance** → Monitor progress via analytics dashboard
 
 ### Data Flow
 
 ```
-User Input → AI Processing (GPT-4o) → MongoDB Storage →
+User Input → You.com Agent (Curriculum Design) → MongoDB Storage →
+Researcher Graph (Live Web Research) → Lesson Generation →
 Frontend Display → User Interaction → Progress Tracking →
 Quiz Validation → Unlock Next Lesson
 ```
@@ -245,6 +239,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 ## 🙏 Acknowledgments
 
 - [Next.js](https://nextjs.org/) - React framework
+- [You.com](https://you.com/) - Search, News, and Agent APIs
 - [OpenAI](https://openai.com/) - GPT-4o model
 - [LangChain](https://www.langchain.com/) - AI orchestration
 - [LangGraph](https://github.com/langchain-ai/langgraph) - State management
