@@ -1,16 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation"; // Added useRouter
+import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { RoadmapView } from "@/components/dashboard/RoadmapView";
-import { BarChart, Clock, Target, Trophy, Loader2 } from "lucide-react"; // Removed Share2
-import { Progress } from "@/components/ui/progress";
+import {
+  BarChart,
+  Clock,
+  Target,
+  Trophy,
+  Loader2,
+  CheckCircle,
+  Circle,
+} from "lucide-react";
+// Removed unused Progress import
 
 export default function CourseDashboardPage() {
   const params = useParams();
-  const router = useRouter(); // Initialize router
+  const router = useRouter();
   const [course, setCourse] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -32,35 +40,27 @@ export default function CourseDashboardPage() {
     fetchCourse();
   }, [params.courseId]);
 
-  // --- NEW: Helper to find the next active topic ---
   const handleContinue = () => {
     if (!course) return;
-
     let targetTopicId = null;
-
-    // Iterate through weeks and topics to find the first incomplete one
     for (const week of course.roadmap.syllabus) {
       for (const topic of week.topics) {
         if (!topic.isCompleted) {
           targetTopicId = topic.id;
-          break; // Found it, stop searching topics
+          break;
         }
       }
-      if (targetTopicId) break; // Found it, stop searching weeks
+      if (targetTopicId) break;
     }
 
-    // If no incomplete topic found, they finished the course!
-    // Default to the very last topic or show a finished state.
+    // If finished, maybe go to last topic or a special completed page
     if (!targetTopicId) {
-      // Optional: Navigate to a "Course Completed" page instead
-      // For now, just go to the last topic of the last week
       const lastWeek =
         course.roadmap.syllabus[course.roadmap.syllabus.length - 1];
       const lastTopic = lastWeek.topics[lastWeek.topics.length - 1];
       targetTopicId = lastTopic.id;
     }
 
-    // Navigate
     router.push(`/dashboard/course/${params.courseId}/topic/${targetTopicId}`);
   };
 
@@ -76,10 +76,25 @@ export default function CourseDashboardPage() {
     return <div>Course not found.</div>;
   }
 
-  // Calculate some stats for the cards
   const totalWeeks = course.roadmap.totalWeeks;
   const currentWeek = course.progress.currentWeek;
   const percentComplete = course.progress.percentComplete;
+
+  // Calculate total lessons
+  let totalLessons = 0;
+  let completedLessons = 0;
+  course.roadmap.syllabus.forEach((week: any) => {
+    week.topics.forEach((topic: any) => {
+      totalLessons++;
+      if (topic.isCompleted) completedLessons++;
+    });
+  });
+
+  // SVG Calculations for the circle
+  const radius = 40;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset =
+    circumference - (percentComplete / 100) * circumference;
 
   return (
     <div className="space-y-8 p-6 pb-20">
@@ -96,11 +111,10 @@ export default function CourseDashboardPage() {
           <h2 className="text-3xl font-bold font-headline">{course.topic}</h2>
         </div>
         <div className="flex gap-2">
-          {/* Removed Share Button */}
           <Button
             size="lg"
             className="shadow-lg shadow-primary/20"
-            onClick={handleContinue} // Attached handler here
+            onClick={handleContinue}
           >
             Continue Week {currentWeek}
           </Button>
@@ -142,30 +156,71 @@ export default function CourseDashboardPage() {
           <RoadmapView syllabus={course.roadmap.syllabus} />
         </div>
 
-        {/* Right Col: Current Focus / Metadata (1/3 width) */}
+        {/* Right Col: Simple Progress Overview */}
         <div className="space-y-6">
-          <div className="bg-card border rounded-xl p-6 shadow-sm space-y-4 sticky top-6">
-            <h3 className="font-semibold text-lg">Goal Checklist</h3>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>Overall Completion</span>
-                  <span className="font-bold">{percentComplete}%</span>
+          <div className="bg-card border rounded-xl p-6 shadow-sm sticky top-6">
+            <h3 className="font-semibold text-lg mb-4">Overall Status</h3>
+
+            <div className="flex flex-col items-center justify-center space-y-4 py-4">
+              {/* Circular Progress (SVG Implementation) */}
+              <div className="relative w-32 h-32">
+                <svg className="w-full h-full" viewBox="0 0 100 100">
+                  {/* Background Circle (Gray Track) */}
+                  <circle
+                    className="text-muted stroke-current"
+                    strokeWidth="8"
+                    cx="50"
+                    cy="50"
+                    r={radius}
+                    fill="transparent"
+                  />
+                  {/* Progress Circle (Primary Color) */}
+                  <circle
+                    className="text-primary stroke-current"
+                    strokeWidth="8"
+                    strokeLinecap="round"
+                    cx="50"
+                    cy="50"
+                    r={radius}
+                    fill="transparent"
+                    strokeDasharray={circumference}
+                    strokeDashoffset={strokeDashoffset}
+                    transform="rotate(-90 50 50)"
+                    style={{ transition: "stroke-dashoffset 0.5s ease-in-out" }}
+                  />
+                </svg>
+                {/* Centered Text */}
+                <div className="absolute inset-0 flex items-center justify-center flex-col">
+                  <span className="text-3xl font-bold">
+                    {Math.round(percentComplete)}%
+                  </span>
                 </div>
-                <Progress value={percentComplete} className="h-2" />
               </div>
 
-              <div className="pt-4 border-t">
-                <h4 className="text-sm font-medium mb-2 text-muted-foreground">
-                  Primary Goal
-                </h4>
-                <p className="text-sm italic">"{course.preferences.goals}"</p>
+              <p className="text-muted-foreground text-sm text-center px-4">
+                You have completed <strong>{completedLessons}</strong> out of{" "}
+                <strong>{totalLessons}</strong> lessons.
+              </p>
+            </div>
+
+            <div className="space-y-4 pt-4 border-t">
+              <div className="flex items-center justify-between text-sm">
+                <span className="flex items-center gap-2 text-muted-foreground">
+                  <CheckCircle className="w-4 h-4 text-green-500" />
+                  Completed
+                </span>
+                <span className="font-medium">{completedLessons}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="flex items-center gap-2 text-muted-foreground">
+                  <Circle className="w-4 h-4" />
+                  Remaining
+                </span>
+                <span className="font-medium">
+                  {totalLessons - completedLessons}
+                </span>
               </div>
             </div>
-            {/* Kept this button but it currently does nothing logic-wise */}
-            <Button variant="secondary" className="w-full">
-              Update Goals
-            </Button>
           </div>
         </div>
       </div>

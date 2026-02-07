@@ -6,6 +6,7 @@ import { z } from "zod";
 import { ToolNode } from "@langchain/langgraph/prebuilt";
 import { MongoDBSaver } from "@langchain/langgraph-checkpoint-mongodb";
 import { MongoClient } from "mongodb";
+import { youSearchTool, youContentTool } from "./tools/you-tools";
 
 // Initialize MongoDB Client
 const client = new MongoClient(process.env.MONGODB_URI!);
@@ -43,6 +44,23 @@ You must NOT:
 - Introduce unrelated subjects
 - Answer factual or technical questions unrelated to the learning topic
 - Follow topic changes unless explicitly framed as a learning request
+
+---
+
+## 🌐 SEARCH & RESEARCH CAPABILITIES
+
+You have access to **Real-Time Search** tools. Use them only when:
+1. The user asks about **recent updates** or **latest versions** (e.g., "What's new in Next.js 14?").
+2. You need to **verify specific facts** or syntax that might be outdated in your training data.
+3. The user asks for a **deep dive** into a specific documentation page.
+
+**Process for Deep Dives:**
+If a user asks for details on a specific library or complex topic:
+1. Search for the official documentation URL using \`web_search\`.
+2. Fetch the content of that URL using \`fetch_page_content\`.
+3. Synthesize the answer from that fresh content.
+
+**STRICT RULE:** Do NOT use search for off-topic queries (e.g., "Who won the Super Bowl?"). Refuse those as usual.
 
 ---
 
@@ -118,12 +136,15 @@ const quizGenerator = tool(
   },
 );
 
+// We combine the Quiz tool with the You.com tools
+const tools = [quizGenerator, youSearchTool, youContentTool];
+
 // Model Configuration
 const model = new ChatOpenAI({
   model: "gpt-4o",
   temperature: 0.3,
   streaming: true,
-}).bindTools([quizGenerator]);
+}).bindTools(tools);
 
 // --- NODE IMPLEMENTATION ---
 
@@ -132,7 +153,6 @@ async function assistantNode(state: typeof MessagesAnnotation.State) {
   const { messages } = state;
 
   // Combine the static instructions with the full conversation history.
-  // We do NOT filter out system messages anymore, because the
   // Context Message injected by the API is a SystemMessage.
   const messagesWithSystem = [
     new SystemMessage(SYSTEM_PROMPT), // Instructions (Rules)
@@ -146,7 +166,7 @@ async function assistantNode(state: typeof MessagesAnnotation.State) {
 }
 
 // Tool Node
-const toolNode = new ToolNode([quizGenerator]);
+const toolNode = new ToolNode(tools);
 
 // Conditional Logic
 const shouldContinue = (state: typeof MessagesAnnotation.State) => {

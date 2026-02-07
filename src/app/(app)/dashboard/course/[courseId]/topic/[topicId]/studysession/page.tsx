@@ -314,7 +314,6 @@ export default function StudySessionPage() {
                             : "bg-white border text-gray-700"
                         }`}
                       >
-                        {/* FIX: 'grid grid-cols-1' forces children to respect the container width */}
                         <div className="prose prose-sm max-w-none dark:prose-invert grid grid-cols-1 break-words">
                           <ReactMarkdown
                             components={{
@@ -379,7 +378,6 @@ export default function StudySessionPage() {
                         <Bot className="h-4 w-4 text-blue-600" />
                       </div>
                       <div className="bg-white border rounded-lg p-3 text-sm text-gray-700 shadow-sm max-w-[85%] min-w-0">
-                        {/* FIX: Applied 'grid grid-cols-1' here as well */}
                         <div className="prose prose-sm max-w-none dark:prose-invert grid grid-cols-1 break-words">
                           <ReactMarkdown
                             components={{
