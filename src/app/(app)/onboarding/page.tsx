@@ -69,7 +69,7 @@ export default function OnboardingPage() {
     setIsGenerating(true);
 
     try {
-      const response = await fetch("/api/courses/generate", {
+      const response = await fetch("/api/courses/roadmap", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),

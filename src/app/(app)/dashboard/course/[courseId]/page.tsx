@@ -142,7 +142,6 @@ export default function CourseDashboardPage() {
           <RoadmapView syllabus={course.roadmap.syllabus} />
         </div>
 
-        {/* Right Col: Current Focus / Metadata (1/3 width) */}
         <div className="space-y-6">
           <div className="bg-card border rounded-xl p-6 shadow-sm space-y-4 sticky top-6">
             <h3 className="font-semibold text-lg">Goal Checklist</h3>
