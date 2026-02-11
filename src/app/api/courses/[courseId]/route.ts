@@ -40,3 +40,42 @@ export async function GET(
     return new NextResponse("Internal Error", { status: 500 });
   }
 }
+
+export async function DELETE(
+  req: Request,
+  { params }: { params: Promise<{ courseId: string }> },
+) {
+  try {
+    const { userId } = await auth();
+    if (!userId) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+
+    const { courseId } = await params;
+
+    await connectDB();
+
+    const user = await User.findOne({ clerkId: userId });
+
+    if (!user) {
+      return new NextResponse("User not found", { status: 404 });
+    }
+
+    // Find and delete the course ensuring it belongs to the user
+    const deletedCourse = await LearningPath.findOneAndDelete({
+      _id: courseId,
+      userId: user._id,
+    });
+
+    if (!deletedCourse) {
+      return new NextResponse("Course not found or unauthorized", {
+        status: 404,
+      });
+    }
+
+    return NextResponse.json({ message: "Course deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting course:", error);
+    return new NextResponse("Internal Error", { status: 500 });
+  }
+}

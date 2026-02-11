@@ -13,14 +13,15 @@ import {
   Loader2,
   CheckCircle,
   Circle,
+  Trash2,
 } from "lucide-react";
-// Removed unused Progress import
 
 export default function CourseDashboardPage() {
   const params = useParams();
   const router = useRouter();
   const [course, setCourse] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const fetchCourse = async () => {
@@ -62,6 +63,35 @@ export default function CourseDashboardPage() {
     }
 
     router.push(`/dashboard/course/${params.courseId}/topic/${targetTopicId}`);
+  };
+
+  // --- DELETE FUNCTION ---
+  const handleDelete = async () => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this course? This action cannot be undone.",
+    );
+
+    if (!confirmed) return;
+
+    setIsDeleting(true);
+
+    try {
+      const res = await fetch(`/api/courses/${params.courseId}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to delete course");
+      }
+
+      // Redirect to main dashboard after deletion
+      router.push("/dashboard");
+      router.refresh(); // Ensure the dashboard list updates
+    } catch (error) {
+      console.error("Delete failed", error);
+      alert("Failed to delete the course. Please try again.");
+      setIsDeleting(false);
+    }
   };
 
   if (loading) {
@@ -111,6 +141,23 @@ export default function CourseDashboardPage() {
           <h2 className="text-3xl font-bold font-headline">{course.topic}</h2>
         </div>
         <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="lg"
+            className="text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/20"
+            onClick={handleDelete}
+            disabled={isDeleting}
+          >
+            {isDeleting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <>
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete
+              </>
+            )}
+          </Button>
+
           <Button
             size="lg"
             className="shadow-lg shadow-primary/20"
