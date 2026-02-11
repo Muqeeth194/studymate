@@ -83,14 +83,6 @@ export function AppSidebar() {
     });
   };
 
-  // 2. Handler for Quiz Click
-  const handleQuizClick = () => {
-    if (!activeCourseId) return;
-    startTransition(async () => {
-      await continueQuiz(activeCourseId);
-    });
-  };
-
   return (
     <Sidebar side="left" collapsible="icon" className="border-r">
       <SidebarHeader>
