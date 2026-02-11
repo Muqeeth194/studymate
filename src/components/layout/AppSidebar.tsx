@@ -38,7 +38,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useClerk, useUser } from "@clerk/nextjs";
 import { continueLearning } from "@/actions/study-session";
-import { continueQuiz } from "@/actions/quiz-session"; // 1. Import new action
+import { continueQuiz } from "@/actions/quiz-session";
 
 interface SimpleCourse {
   _id: string;
@@ -80,14 +80,6 @@ export function AppSidebar() {
     if (!activeCourseId) return;
     startTransition(async () => {
       await continueLearning(activeCourseId);
-    });
-  };
-
-  // 2. Handler for Quiz Click
-  const handleQuizClick = () => {
-    if (!activeCourseId) return;
-    startTransition(async () => {
-      await continueQuiz(activeCourseId);
     });
   };
 
@@ -180,27 +172,6 @@ export function AppSidebar() {
                           disabled={isPending}
                           tooltip={item.label}
                           className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground cursor-pointer text-blue-600"
-                        >
-                          {isPending ? (
-                            <Loader2 className="h-5 w-5 animate-spin" />
-                          ) : (
-                            <item.icon className="h-5 w-5" />
-                          )}
-                          <span>{item.label}</span>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    );
-                  }
-
-                  // --- CASE 2: Quizzes (New Action) ---
-                  if (item.label === "Quizzes") {
-                    return (
-                      <SidebarMenuItem key={item.href}>
-                        <SidebarMenuButton
-                          onClick={handleQuizClick}
-                          disabled={isPending}
-                          tooltip={item.label}
-                          className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground cursor-pointer text-purple-600"
                         >
                           {isPending ? (
                             <Loader2 className="h-5 w-5 animate-spin" />
